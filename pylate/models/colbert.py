@@ -504,6 +504,7 @@ class ColBERT(SentenceTransformer):
                 embeddings = []
 
                 for batch in sentences:
+                    # 文書のリストをエンコードする
                     batch_embedings = self.encode(
                         sentences=batch,
                         prompt_name=prompt_name,
@@ -521,6 +522,7 @@ class ColBERT(SentenceTransformer):
                         protected_tokens=protected_tokens,
                     )
 
+                    # Tensorに変換する場合は、スタックして1つのTensorにする
                     batch_embedings = (
                         torch.stack(batch_embedings)
                         if convert_to_tensor
