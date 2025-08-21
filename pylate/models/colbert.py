@@ -603,7 +603,7 @@ class ColBERT(SentenceTransformer):
         length_sorted_idx = np.argsort([-self._text_length(sen) for sen in sentences])
         sentences_sorted = [sentences[idx] for idx in length_sorted_idx]  # 効率化のため、できるだけ同じ長さの文にまとめる
 
-        for start_index in trange(
+        for start_index in trange(  # プログレスバー付きrange
             0,
             len(sentences),
             batch_size,
