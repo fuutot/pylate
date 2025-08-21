@@ -539,6 +539,7 @@ class ColBERT(SentenceTransformer):
             ht.hpu.wrap_in_hpu_graph(self, disable_tensor_cache=True)
             self.is_hpu_graph_enabled = True
 
+        # 評価モードで実行
         self.eval()
         if show_progress_bar is None:
             show_progress_bar = (
