@@ -557,9 +557,10 @@ class ColBERT(SentenceTransformer):
         # convert_to_tensor = False
         # convert_to_numpy = False
 
+        # 文字列のリストに統一
         input_was_string = False
         if isinstance(sentences, str) or not hasattr(sentences, "__len__"):
-            sentences = [sentences]
+            sentences: list[str] = [sentences]
             input_was_string = True
 
         if prompt is not None and prompt_name is not None:
