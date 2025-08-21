@@ -563,6 +563,7 @@ class ColBERT(SentenceTransformer):
             sentences: list[str] = [sentences]
             input_was_string = True
 
+        # プロンプト（入力テキストの前に連結される）の処理
         if prompt is not None and prompt_name is not None:
             logger.warning(
                 "Provide either a `prompt` or a `prompt_name`, not both. "
@@ -582,7 +583,7 @@ class ColBERT(SentenceTransformer):
 
         extra_features = {}
         if prompt is not None:
-            sentences = [prompt + sentence for sentence in sentences]
+            sentences = [prompt + sentence for sentence in sentences]  # プロンプトを連結
 
             # Some models require removing the prompt before pooling (e.g. Instructor, Grit).
             # Tracking the prompt length allow us to remove the prompt during pooling.
