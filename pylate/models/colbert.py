@@ -1031,13 +1031,13 @@ class ColBERT(SentenceTransformer):
                 "attention_mask", and optionally "token_type_ids".
         """
         # Set max sequence length based on whether the input is a query or document
-        max_length = self.query_length if is_query else self.document_length
+        max_length = self.query_length if is_query else self.document_length  # クエリかどうかで最大長を設定
         self._first_module().max_seq_length = (
             max_length - 1
         )  # Subtract 1 for the prefix token
 
         # Pad queries (query expansion) and handle padding for documents if specified
-        tokenize_args = {"padding": "max_length"} if pad_document or is_query else {}
+        tokenize_args = {"padding": "max_length"} if pad_document or is_query else {}  # クエリは常にパディングする。文書はpad_documentがTrueの場合のみパディングする
 
         # Tokenize the texts
         tokenized_outputs = self._first_module().tokenize(texts, **tokenize_args)
@@ -1050,18 +1050,18 @@ class ColBERT(SentenceTransformer):
             tokenized_outputs["input_ids"], prefix_id
         )
         tokenized_outputs["attention_mask"] = self.insert_prefix_token(
-            tokenized_outputs["attention_mask"], 1
+            tokenized_outputs["attention_mask"], 1  # attention_maskは計算で使用するかの区別に使われるため、使用することを表す'1'を使用
         )
 
         # Update token type IDs if they exist
         if "token_type_ids" in tokenized_outputs:
             tokenized_outputs["token_type_ids"] = self.insert_prefix_token(
-                tokenized_outputs["token_type_ids"], 0
+                tokenized_outputs["token_type_ids"], 0  # token_type_idは2つの文書の区別に使われるため、同じことを表す'0'を使用
             )
 
         # Adjust attention mask for expansion tokens if required
-        if is_query and self.attend_to_expansion_tokens:
-            tokenized_outputs["attention_mask"].fill_(1)
+        if is_query and self.attend_to_expansion_tokens:  # クエリの拡張トークンに双方向の注意を向ける場合
+            tokenized_outputs["attention_mask"].fill_(1)  # Todo: 'None'のとき、拡張トークンが計算に使われているか確認する
 
         return tokenized_outputs
 
