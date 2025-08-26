@@ -250,7 +250,7 @@ class ColBERT(SentenceTransformer):
         )
         hidden_size = self[0].get_word_embedding_dimension()
 
-        # Add a linear projection layer to the model in order to project the embeddings to the desired size.
+        # Add a linear projection layer to the model in order to project the embeddings to the desired size. 訳：モデルに線形射影層を追加して、埋め込みを目的のサイズに射影します。
         if len(self) < 2:
             # If the model is a stanford-nlp ColBERT, load the weights of the dense layer
             if (
