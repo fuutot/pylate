@@ -338,6 +338,7 @@ class ColBERT(SentenceTransformer):
             embedding_size is not None
             and self[1].get_sentence_embedding_dimension() != embedding_size
         ):
+            # Dense層の出力次元が異なる場合、置き換える
             logger.warning(
                 f"The checkpoint contains a dense layer with output dimension ({hidden_size}, {self[1].get_sentence_embedding_dimension()}). Replacing it with a Dense layer with output dimensions ({hidden_size}, {embedding_size})."
             )
