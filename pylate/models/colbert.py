@@ -696,6 +696,7 @@ class ColBERT(SentenceTransformer):
                     )
                     embeddings.append(token_embedding)
 
+                # 文書の場合かつpool_factorが1より大きい場合、埋め込みを圧縮
                 # Pool factor must be greater than 1: keeping 1 over pool_factor tokens embeddings.
                 if pool_factor > 1 and not is_query:
                     embeddings = self.pool_embeddings_hierarchical(
