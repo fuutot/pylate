@@ -681,6 +681,7 @@ class ColBERT(SentenceTransformer):
                         input=out_features["input_ids"], dtype=torch.bool
                     )
 
+                # maskを使ってembeddingを取得
                 embeddings = []
                 for (
                     token_embedding,
