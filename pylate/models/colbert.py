@@ -347,6 +347,7 @@ class ColBERT(SentenceTransformer):
             )
 
         elif not isinstance(self[1], Dense):
+            # PyLate用のDense層でない場合、置き換える
             logger.warning(
                 f"Converting the existing Dense layer from SentenceTransform with output dimensions ({hidden_size}, {self[1].get_sentence_embedding_dimension()})."
             )
