@@ -320,6 +320,7 @@ class ColBERT(SentenceTransformer):
                         "Could not load the configuration file from Stanford NLP model, using default values."
                     )
             else:
+                # 線型射影層がないかつ、Stanford大学のColBERTモデルでない場合、Dense層を初期化して追加する
                 # Add a linear projection layer to the model in order to project the embeddings to the desired size
                 embedding_size = embedding_size or 128
 
