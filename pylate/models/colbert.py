@@ -667,7 +667,7 @@ class ColBERT(SentenceTransformer):
                 if self.device.type == "hpu":
                     out_features = copy.deepcopy(out_features)
 
-                if not is_query:
+                if not is_query:  # クエリでない場合、skiplistを使ってトークンをマスク
                     # Compute the mask for the skiplist (punctuation symbols)
                     skiplist_mask = self.skiplist_mask(
                         input_ids=features["input_ids"], skiplist=self.skiplist
@@ -675,7 +675,7 @@ class ColBERT(SentenceTransformer):
                     masks = torch.logical_and(
                         input=skiplist_mask, other=out_features["attention_mask"]
                     )
-                else:
+                else:  # クエリの場合、マスクはすべてTrue
                     # We keep all tokens in the query (no skiplist) and we do not want to prune expansion tokens in queries even if we do not attend to them in attention layers
                     masks = torch.ones_like(
                         input=out_features["input_ids"], dtype=torch.bool
