@@ -1185,8 +1185,7 @@ class ColBERT(SentenceTransformer):
         self.model_card_data.set_base_model(
             model_id=model_name_or_path, revision=revision
         )
-
-        return [transformer_model]
+        return [transformer_model]  # pooling層はなし。ColBERTではトークン数分の埋め込みを返すため
 
     def _load_sbert_model(
         self,
