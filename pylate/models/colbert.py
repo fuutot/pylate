@@ -504,6 +504,7 @@ class ColBERT(SentenceTransformer):
                 embeddings = []
 
                 for batch in sentences:
+                    # 文書のリストをエンコードする
                     batch_embedings = self.encode(
                         sentences=batch,
                         prompt_name=prompt_name,
@@ -521,6 +522,7 @@ class ColBERT(SentenceTransformer):
                         protected_tokens=protected_tokens,
                     )
 
+                    # Tensorに変換する場合は、スタックして1つのTensorにする
                     batch_embedings = (
                         torch.stack(batch_embedings)
                         if convert_to_tensor
@@ -537,6 +539,7 @@ class ColBERT(SentenceTransformer):
             ht.hpu.wrap_in_hpu_graph(self, disable_tensor_cache=True)
             self.is_hpu_graph_enabled = True
 
+        # 評価モードで実行
         self.eval()
         if show_progress_bar is None:
             show_progress_bar = (
@@ -554,11 +557,13 @@ class ColBERT(SentenceTransformer):
         # convert_to_tensor = False
         # convert_to_numpy = False
 
+        # 文字列のリストに統一
         input_was_string = False
         if isinstance(sentences, str) or not hasattr(sentences, "__len__"):
-            sentences = [sentences]
+            sentences: list[str] = [sentences]
             input_was_string = True
 
+        # プロンプト（入力テキストの前に連結される）の処理
         if prompt is not None and prompt_name is not None:
             logger.warning(
                 "Provide either a `prompt` or a `prompt_name`, not both. "
@@ -578,7 +583,7 @@ class ColBERT(SentenceTransformer):
 
         extra_features = {}
         if prompt is not None:
-            sentences = [prompt + sentence for sentence in sentences]
+            sentences = [prompt + sentence for sentence in sentences]  # プロンプトを連結
 
             # Some models require removing the prompt before pooling (e.g. Instructor, Grit).
             # Tracking the prompt length allow us to remove the prompt during pooling.
@@ -593,11 +598,12 @@ class ColBERT(SentenceTransformer):
 
         self.to(device)
 
+        # エンべディングの計算
         all_embeddings = []
         length_sorted_idx = np.argsort([-self._text_length(sen) for sen in sentences])
-        sentences_sorted = [sentences[idx] for idx in length_sorted_idx]
+        sentences_sorted = [sentences[idx] for idx in length_sorted_idx]  # 効率化のため、できるだけ同じ長さの文にまとめる
 
-        for start_index in trange(
+        for start_index in trange(  # プログレスバー付きrange
             0,
             len(sentences),
             batch_size,
@@ -653,15 +659,15 @@ class ColBERT(SentenceTransformer):
                         )
 
             features = batch_to_device(batch=features, target_device=device)
-            features.update(extra_features)
+            features.update(extra_features)  # promptの長さを追加。poolingのため
 
-            with torch.no_grad():
+            with torch.no_grad():  # 勾配計算なしで
                 # TODO: add the truncate/sliding window logic here
                 out_features = self.forward(input=features)
                 if self.device.type == "hpu":
                     out_features = copy.deepcopy(out_features)
 
-                if not is_query:
+                if not is_query:  # クエリでない場合、skiplistを使ってトークンをマスク
                     # Compute the mask for the skiplist (punctuation symbols)
                     skiplist_mask = self.skiplist_mask(
                         input_ids=features["input_ids"], skiplist=self.skiplist
@@ -669,12 +675,13 @@ class ColBERT(SentenceTransformer):
                     masks = torch.logical_and(
                         input=skiplist_mask, other=out_features["attention_mask"]
                     )
-                else:
+                else:  # クエリの場合、マスクはすべてTrue
                     # We keep all tokens in the query (no skiplist) and we do not want to prune expansion tokens in queries even if we do not attend to them in attention layers
                     masks = torch.ones_like(
                         input=out_features["input_ids"], dtype=torch.bool
                     )
 
+                # maskを使ってembeddingを取得
                 embeddings = []
                 for (
                     token_embedding,
@@ -689,6 +696,7 @@ class ColBERT(SentenceTransformer):
                     )
                     embeddings.append(token_embedding)
 
+                # 文書の場合かつpool_factorが1より大きい場合、埋め込みを圧縮
                 # Pool factor must be greater than 1: keeping 1 over pool_factor tokens embeddings.
                 if pool_factor > 1 and not is_query:
                     embeddings = self.pool_embeddings_hierarchical(
@@ -707,12 +715,12 @@ class ColBERT(SentenceTransformer):
         if padding:
             all_embeddings = torch.nn.utils.rnn.pad_sequence(
                 sequences=all_embeddings, batch_first=True, padding_value=0
-            )
+            )  # [batch_size, max_length, embedding_dim]
 
             # Create a list of tensors.
             all_embeddings = torch.split(
                 tensor=all_embeddings, split_size_or_sections=1, dim=0
-            )
+            )  # batch次元に沿って分割
 
         all_embeddings = [all_embeddings[idx] for idx in np.argsort(length_sorted_idx)]
 
@@ -1025,13 +1033,13 @@ class ColBERT(SentenceTransformer):
                 "attention_mask", and optionally "token_type_ids".
         """
         # Set max sequence length based on whether the input is a query or document
-        max_length = self.query_length if is_query else self.document_length
+        max_length = self.query_length if is_query else self.document_length  # クエリかどうかで最大長を設定
         self._first_module().max_seq_length = (
             max_length - 1
         )  # Subtract 1 for the prefix token
 
         # Pad queries (query expansion) and handle padding for documents if specified
-        tokenize_args = {"padding": "max_length"} if pad_document or is_query else {}
+        tokenize_args = {"padding": "max_length"} if pad_document or is_query else {}  # クエリは常にパディングする。文書はpad_documentがTrueの場合のみパディングする
 
         # Tokenize the texts
         tokenized_outputs = self._first_module().tokenize(texts, **tokenize_args)
@@ -1044,18 +1052,18 @@ class ColBERT(SentenceTransformer):
             tokenized_outputs["input_ids"], prefix_id
         )
         tokenized_outputs["attention_mask"] = self.insert_prefix_token(
-            tokenized_outputs["attention_mask"], 1
+            tokenized_outputs["attention_mask"], 1  # attention_maskは計算で使用するかの区別に使われるため、使用することを表す'1'を使用
         )
 
         # Update token type IDs if they exist
         if "token_type_ids" in tokenized_outputs:
             tokenized_outputs["token_type_ids"] = self.insert_prefix_token(
-                tokenized_outputs["token_type_ids"], 0
+                tokenized_outputs["token_type_ids"], 0  # token_type_idは2つの文書の区別に使われるため、同じことを表す'0'を使用
             )
 
         # Adjust attention mask for expansion tokens if required
-        if is_query and self.attend_to_expansion_tokens:
-            tokenized_outputs["attention_mask"].fill_(1)
+        if is_query and self.attend_to_expansion_tokens:  # クエリの拡張トークンに双方向の注意を向ける場合
+            tokenized_outputs["attention_mask"].fill_(1)  # Todo: 'None'のとき、拡張トークンが計算に使われているか確認する
 
         return tokenized_outputs
 
