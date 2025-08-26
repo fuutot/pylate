@@ -253,10 +253,12 @@ class ColBERT(SentenceTransformer):
         # Add a linear projection layer to the model in order to project the embeddings to the desired size. 訳：モデルに線形射影層を追加して、埋め込みを目的のサイズに射影します。
         if len(self) < 2:
             # If the model is a stanford-nlp ColBERT, load the weights of the dense layer
+            # Stanford NLP ColBERTモデルの場合、Dense層の重みをロードする
             if (
                 self[0].auto_model.config.architectures is not None
                 and self[0].auto_model.config.architectures[0] == "HF_ColBERT"
             ):
+                # stanford-nlp ColBERTのチェックポイントからDense層をロードし追加する
                 self.append(
                     Dense.from_stanford_weights(
                         model_name_or_path,
@@ -269,6 +271,7 @@ class ColBERT(SentenceTransformer):
                 )
                 logger.info("Loaded the weights from Stanford NLP model.")
                 try:
+                    # 設定値を読み込み
                     metadata = cached_file(
                         model_name_or_path,
                         filename="artifact.metadata",
