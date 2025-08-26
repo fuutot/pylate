@@ -228,6 +228,7 @@ class ColBERT(SentenceTransformer):
         if similarity_fn_name is None:
             similarity_fn_name = "MaxSim"
 
+        # 親クラス（SentenceTransformer）の初期化。SentenceTransformerモデルでない場合は、'_load_auto_model()'を呼び出す
         super(ColBERT, self).__init__(
             model_name_or_path=model_name_or_path,
             modules=modules,
