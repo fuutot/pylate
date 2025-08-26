@@ -661,7 +661,7 @@ class ColBERT(SentenceTransformer):
             features = batch_to_device(batch=features, target_device=device)
             features.update(extra_features)  # promptの長さを追加。poolingのため
 
-            with torch.no_grad():
+            with torch.no_grad():  # 勾配計算なしで
                 # TODO: add the truncate/sliding window logic here
                 out_features = self.forward(input=features)
                 if self.device.type == "hpu":
