@@ -217,12 +217,13 @@ class ColBERT(SentenceTransformer):
         config_kwargs: dict | None = None,
         model_card_data: PylateModelCardData | None = None,
     ) -> None:
+        # 基本パラメータの設定
         self.query_prefix = query_prefix
         self.document_prefix = document_prefix
         self.query_length = query_length
         self.document_length = document_length
-        self.attend_to_expansion_tokens = attend_to_expansion_tokens
-        self.skiplist_words = skiplist_words
+        self.attend_to_expansion_tokens = attend_to_expansion_tokens  # オリジナルクエリトークンが拡張トークンに注意を払うかどうか。双方向にしたい場合はTrue
+        self.skiplist_words = skiplist_words  # スコア計算時に無視する単語のリスト
         model_card_data = model_card_data or PylateModelCardData()
         if similarity_fn_name is None:
             similarity_fn_name = "MaxSim"
