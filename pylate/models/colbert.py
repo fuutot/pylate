@@ -715,12 +715,12 @@ class ColBERT(SentenceTransformer):
         if padding:
             all_embeddings = torch.nn.utils.rnn.pad_sequence(
                 sequences=all_embeddings, batch_first=True, padding_value=0
-            )
+            )  # [batch_size, max_length, embedding_dim]
 
             # Create a list of tensors.
             all_embeddings = torch.split(
                 tensor=all_embeddings, split_size_or_sections=1, dim=0
-            )
+            )  # batch次元に沿って分割
 
         all_embeddings = [all_embeddings[idx] for idx in np.argsort(length_sorted_idx)]
 
