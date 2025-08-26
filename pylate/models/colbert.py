@@ -659,7 +659,7 @@ class ColBERT(SentenceTransformer):
                         )
 
             features = batch_to_device(batch=features, target_device=device)
-            features.update(extra_features)
+            features.update(extra_features)  # promptの長さを追加。poolingのため
 
             with torch.no_grad():
                 # TODO: add the truncate/sliding window logic here
