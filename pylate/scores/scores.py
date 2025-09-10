@@ -51,11 +51,23 @@ def colbert_scores(
     queries_embeddings = convert_to_tensor(queries_embeddings)
     documents_embeddings = convert_to_tensor(documents_embeddings)
 
+    # アインシュタイン記法による内積計算
     scores = torch.einsum(
         "ash,bth->abst",
         queries_embeddings,
         documents_embeddings,
     )
+    """
+    queries_embeddings: ash
+    a: クエリのバッチサイズ
+    s: クエリのトークン数
+    h: 埋め込み次元数
+    documents_embeddings: bth
+    b: ドキュメントのバッチサイズ
+    t: ドキュメントのトークン数
+    return: abst
+        各クエリの各トークンと、各ドキュメントの各トークンについての内積を計算したテンソル
+    """
 
     if mask is not None:
         mask = convert_to_tensor(mask)

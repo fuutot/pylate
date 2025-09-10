@@ -94,6 +94,7 @@ def rerank(
     """
     results = []
 
+    # 埋め込みの形状を適切な形状（3次元）に変換[バッチサイズ, トークン数, 埋め込み次元]
     queries_embeddings = reshape_embeddings(embeddings=queries_embeddings)
     documents_embeddings = reshape_embeddings(embeddings=documents_embeddings)
 
@@ -116,6 +117,7 @@ def rerank(
             query_embeddings = query_embeddings.to(device)
             query_documents_embeddings = query_documents_embeddings.to(device)
         else:
+            # デバイスが指定されていなければ、クエリに合わせる
             query_documents_embeddings = query_documents_embeddings.to(
                 query_embeddings.device
             )
