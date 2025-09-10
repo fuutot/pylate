@@ -117,6 +117,7 @@ def rerank(
             query_embeddings = query_embeddings.to(device)
             query_documents_embeddings = query_documents_embeddings.to(device)
         else:
+            # デバイスが指定されていなければ、クエリに合わせる
             query_documents_embeddings = query_documents_embeddings.to(
                 query_embeddings.device
             )
